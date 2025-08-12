@@ -134,14 +134,21 @@ if [[ -n "$SENTRY_ORG" && -n "$SENTRY_PROJECT" && -n "$SENTRY_AUTH_TOKEN" ]]; th
     
     if [[ "$BUILD_GPU_INFO" == "ON" && -f "../install/bin/gpu_info_demo" ]]; then
         UPLOAD_FILES="$UPLOAD_FILES ../install/bin/gpu_info_demo"
+        if [[ "$OSTYPE" == "darwin"* && -d "./gpu_info_demo.dSYM" ]]; then
+            UPLOAD_FILES="$UPLOAD_FILES ./gpu_info_demo.dSYM"
+        fi
     fi
     
     if [[ -n "$UPLOAD_FILES" ]]; then
-        "$SENTRY_CLI_PATH" debug-files upload $UPLOAD_FILES
+        # Upload with proper source mapping and paths
+        "$SENTRY_CLI_PATH" debug-files upload \
+            --include-sources \
+            --log-level info \
+            $UPLOAD_FILES
         if [[ $? -eq 0 ]]; then
-            echo "Debug symbols uploaded successfully to Sentry!"
+            echo "Debug symbols and source files uploaded successfully to Sentry!"
         else
-            echo "Warning: Failed to upload debug symbols to Sentry"
+            echo "Warning: Failed to upload debug symbols and source files to Sentry"
         fi
     else
         echo "No demo binaries found to upload"

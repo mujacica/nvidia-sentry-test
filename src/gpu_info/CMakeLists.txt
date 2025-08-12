@@ -47,6 +47,14 @@ set_target_properties(gpu_info_demo PROPERTIES
     CXX_STANDARD_REQUIRED ON
 )
 
+# Generate dSYM files on macOS for better debugging
+if(APPLE)
+    add_custom_command(TARGET gpu_info_demo POST_BUILD
+        COMMAND dsymutil $<TARGET_FILE:gpu_info_demo>
+        COMMENT "Generating dSYM file for gpu_info_demo"
+    )
+endif()
+
 # Install the executable
 install(TARGETS gpu_info_demo DESTINATION bin)
 

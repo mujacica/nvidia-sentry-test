@@ -155,11 +155,12 @@ if defined SENTRY_ORG if defined SENTRY_PROJECT if defined SENTRY_AUTH_TOKEN (
     )
     
     if defined UPLOAD_FILES (
-        "%SENTRY_CLI_PATH%" debug-files upload !UPLOAD_FILES!
+        REM Upload with proper source mapping and paths
+        "%SENTRY_CLI_PATH%" debug-files upload --include-sources --log-level info  !UPLOAD_FILES!
         if !ERRORLEVEL! equ 0 (
-            echo Debug symbols uploaded successfully to Sentry!
+            echo Debug symbols and source files uploaded successfully to Sentry!
         ) else (
-            echo Warning: Failed to upload debug symbols to Sentry
+            echo Warning: Failed to upload debug symbols and source files to Sentry
         )
     ) else (
         echo No demo binaries found to upload
