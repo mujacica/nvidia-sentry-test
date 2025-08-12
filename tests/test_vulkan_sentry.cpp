@@ -1,4 +1,4 @@
-#if defined(__linux__)
+#if defined(__linux__) || defined(_WIN32)
 #include "../src/vulkan/vulkan_renderer.h"
 #include <gtest/gtest.h>
 #include <sentry.h>
@@ -86,8 +86,8 @@ TEST_F(VulkanSentryTest, InvalidRenderPass) {
 #else
 #include <gtest/gtest.h>
 
-TEST(VulkanSentryTest, LinuxOnly) {
-  GTEST_SKIP() << "Vulkan tests only available on Linux";
+TEST(VulkanSentryTest, PlatformNotSupported) {
+  GTEST_SKIP() << "Vulkan tests only available on Windows and Linux";
 }
 
-#endif // __linux__
+#endif // defined(__linux__) || defined(_WIN32)
