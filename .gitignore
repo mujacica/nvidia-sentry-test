@@ -1,0 +1,6 @@
+build/
+.vscode/
+.sentry-native/
+install/
+sentry-cli
+sentry-cli.exe
