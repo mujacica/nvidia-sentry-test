@@ -17,7 +17,7 @@ option(SENTRY_WITH_GPU_INFO "Enable GPU info collection in sentry-native" ON)
 
 # Platform-specific settings
 if(WIN32)
-    set(BUILD_VULKAN OFF CACHE BOOL "Vulkan not supported on Windows in this demo" FORCE)
+    # Build everything on Windows
 elseif(UNIX AND NOT APPLE)
     set(BUILD_DIRECTX OFF CACHE BOOL "DirectX not supported on Linux" FORCE)
 elseif(APPLE)
@@ -32,8 +32,8 @@ if(BUILD_CUDA AND NOT (WIN32 OR (UNIX AND NOT APPLE)))
     message(FATAL_ERROR "CUDA demo is only supported on Windows and Linux (requires NVIDIA GPU)")
 endif()
 
-if(BUILD_VULKAN AND NOT (UNIX AND NOT APPLE))
-    message(FATAL_ERROR "Vulkan demo is only supported on Linux")
+if(BUILD_VULKAN AND NOT ((UNIX AND NOT APPLE) OR WIN32))
+    message(FATAL_ERROR "Vulkan demo is only supported on Linux and Windows")
 endif()
 
 if(BUILD_DIRECTX AND NOT WIN32)

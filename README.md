@@ -1,15 +1,15 @@
-# Sentry Graphics Demo
+# Sentry GPU Demos
 
-A comprehensive demonstration project showing how to integrate [Sentry Native SDK](https://github.com/getsentry/sentry-native) with multiple graphics APIs for comprehensive error reporting and crash monitoring across different platforms.
+A comprehensive demonstration project showing how to integrate [Sentry Native SDK](https://github.com/getsentry/sentry-native) with multiple GPU Frameworks and APIs for comprehensive error reporting and crash monitoring across different platforms.
 
 ## Features
 
 - **Multi-API Support**: CUDA, Vulkan, DirectX, Python CUDA, and GPU info collection demos
-- **Platform-Specific**: CUDA (Windows/Linux), Vulkan (Linux), DirectX (Windows), GPU Info (all platforms)  
-- **Sentry Integration**: Automatic error reporting with detailed graphics context
+- **Platform-Specific**: CUDA (Windows/Linux), Vulkan (Windows/Linux), DirectX (Windows), GPU Info (all platforms)  
+- **Sentry Integration**: Automatic error reporting with detailed GPU context
 - **GPU Info Collection**: Dedicated demo for GPU hardware information gathering
 - **Python Integration**: Python CUDA demo with advanced library conflict scenarios
-- **Comprehensive Testing**: Unit tests for all graphics APIs
+- **Comprehensive Testing**: Unit tests for all GPU APIs
 - **Multiple Build Systems**: CMake, Make, and platform-specific scripts
 - **GPU Context Reporting**: Uses Sentry's native-gpu-info branch for enhanced GPU diagnostics
 - **Automatic Installation**: Installs all binaries and dependencies to a single location
@@ -28,7 +28,7 @@ A comprehensive demonstration project showing how to integrate [Sentry Native SD
 - NVIDIA GPU with compute capability 5.0+
 - Not supported on macOS (no NVIDIA GPU support)
 
-#### Vulkan (Linux Only)
+#### Vulkan (Windows/Linux)
 - Vulkan SDK 1.2+
 - Vulkan-compatible GPU and drivers
 
@@ -70,7 +70,8 @@ sudo apt install vulkan-sdk
 
 #### Windows
 - Visual Studio 2019+ with C++ and Windows SDK support
-- CUDA Toolkit from NVIDIA website
+- CUDA Toolkit from NVIDIA website (for CUDA demos)
+- Vulkan SDK from LunarG (for Vulkan demos)
 - CMake (via Visual Studio Installer or standalone)
 
 ## Quick Start
@@ -141,9 +142,9 @@ cd install/bin && ./cuda_crash_demo infinite_loop
 cd install\bin && .\cuda_crash_demo.exe [test_type]
 ```
 
-#### Vulkan Demo (Linux Only)
+#### Vulkan Demo (Windows/Linux)
 ```bash
-# Run all Vulkan crash scenarios
+# Linux - Run all Vulkan crash scenarios
 cd install/bin && ./vulkan_crash_demo
 
 # Run specific crash type
@@ -152,6 +153,18 @@ cd install/bin && ./vulkan_crash_demo invalid_command_buffer
 cd install/bin && ./vulkan_crash_demo out_of_bounds_descriptor
 cd install/bin && ./vulkan_crash_demo invalid_render_pass
 cd install/bin && ./vulkan_crash_demo device_lost_simulation
+```
+
+```cmd
+REM Windows - Run all Vulkan crash scenarios
+cd install\bin && .\vulkan_crash_demo.exe
+
+REM Run specific crash type
+cd install\bin && .\vulkan_crash_demo.exe invalid_buffer_access
+cd install\bin && .\vulkan_crash_demo.exe invalid_command_buffer
+cd install\bin && .\vulkan_crash_demo.exe out_of_bounds_descriptor
+cd install\bin && .\vulkan_crash_demo.exe invalid_render_pass
+cd install\bin && .\vulkan_crash_demo.exe device_lost_simulation
 ```
 
 #### DirectX Demo (Windows Only)
@@ -433,7 +446,7 @@ When these are set, the build scripts will automatically download and use sentry
 #### Vulkan Configuration  
 - Automatically detects Vulkan-compatible devices
 - Uses validation layers in debug builds for enhanced error detection
-- Requires Vulkan SDK installation
+- Requires Vulkan SDK installation (Windows: LunarG Vulkan SDK, Linux: vulkan-sdk package)
 
 #### DirectX Configuration
 - Automatically detects DirectX 11 compatible devices
@@ -465,9 +478,9 @@ ctest -R DirectXSentryTests
 3. Check your Sentry dashboard for reported errors with graphics context
 
 #### API-Specific Testing
-- **CUDA**: Test on systems with different NVIDIA GPU generations
-- **Vulkan**: Test with different Vulkan drivers (NVIDIA, AMD, Intel)
-- **DirectX**: Test on systems with different DirectX versions
+- **CUDA**: Test on systems with different NVIDIA GPU generations (Windows/Linux)
+- **Vulkan**: Test with different Vulkan drivers (NVIDIA, AMD, Intel) on Windows and Linux
+- **DirectX**: Test on systems with different DirectX versions (Windows only)
 
 ## Troubleshooting
 
@@ -475,7 +488,7 @@ ctest -R DirectXSentryTests
 
 #### Graphics API Not Available
 - **CUDA**: Ensure CUDA Toolkit is installed and `nvcc` is in PATH (`nvcc --version`)
-- **Vulkan**: Install Vulkan SDK and verify with `vulkaninfo`  
+- **Vulkan**: Install Vulkan SDK and verify with `vulkaninfo` (Windows: LunarG installer, Linux: vulkan-sdk package)
 - **DirectX**: Ensure Windows SDK with DirectX support is installed
 
 #### No Graphics Devices Detected
@@ -506,8 +519,9 @@ sudo apt install libvulkan-dev vulkan-utils # Additional Vulkan tools
 
 #### Missing Dependencies (Windows)
 - Install Visual Studio with C++ workload and Windows SDK
-- Install CUDA Toolkit from NVIDIA
-- Ensure Windows SDK includes DirectX headers
+- Install CUDA Toolkit from NVIDIA (for CUDA demos)
+- Install Vulkan SDK from LunarG (for Vulkan demos)
+- Ensure Windows SDK includes DirectX headers (for DirectX demos)
 
 #### CMake Configuration Issues
 - Minimum CMake version: 3.18

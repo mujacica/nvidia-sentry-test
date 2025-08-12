@@ -60,7 +60,11 @@ public:
                             sentry_value_new_string("vulkan_renderer"));
     sentry_value_set_by_key(tags, "crash_type",
                             sentry_value_new_string(crash_type.c_str()));
+    #ifdef _WIN32
+    sentry_value_set_by_key(tags, "platform", sentry_value_new_string("windows"));
+    #else
     sentry_value_set_by_key(tags, "platform", sentry_value_new_string("linux"));
+    #endif
     sentry_value_set_by_key(event, "tags", tags);
 
     sentry_capture_event(event);
