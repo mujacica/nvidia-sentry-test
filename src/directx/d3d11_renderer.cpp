@@ -341,13 +341,13 @@ HWND D3D11Renderer::createDummyWindow() {
   WNDCLASS wc = {};
   wc.lpfnWndProc = WindowProc;
   wc.hInstance = GetModuleHandle(nullptr);
-  wc.lpszClassName = L"SentryDirectXDemoWindow";
+  wc.lpszClassName = "SentryDirectXDemoWindow";
 
   if (!RegisterClass(&wc)) {
     return nullptr;
   }
 
-  return CreateWindowEx(0, L"SentryDirectXDemoWindow", L"Sentry DirectX Demo",
+  return CreateWindowEx(0, "SentryDirectXDemoWindow", "Sentry DirectX Demo",
                         WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800,
                         600, nullptr, nullptr, GetModuleHandle(nullptr),
                         nullptr);

@@ -69,7 +69,7 @@ sudo apt install vulkan-sdk
 ```
 
 #### Windows
-- Visual Studio 2019+ with C++ and Windows SDK support
+- Visual Studio 2022+ with C++ and Windows SDK support
 - CUDA Toolkit from NVIDIA website (for CUDA demos)
 - Vulkan SDK from LunarG (for Vulkan demos)
 - CMake (via Visual Studio Installer or standalone)
@@ -249,7 +249,7 @@ make install                  # Build and install everything
 ### Windows Visual Studio
 ```cmd
 mkdir build && cd build
-cmake -G "Visual Studio 16 2019" -A x64 -DBUILD_CUDA=ON -DBUILD_DIRECTX=ON ..
+cmake -G "Visual Studio 17 2022" -A x64 -DBUILD_CUDA=ON -DBUILD_DIRECTX=ON ..
 cmake --build . --config Release
 ```
 

@@ -42,11 +42,11 @@ CudaError launch_divide_by_zero_crash(int *d_data, int size) {
 
   cudaError_t cuda_error = cudaDeviceSynchronize();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_DIVIDE_BY_ZERO"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_DIVIDE_BY_ZERO"};
   }
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }
 
 CudaError launch_out_of_bounds_crash(int *d_data, int size) {
@@ -57,11 +57,11 @@ CudaError launch_out_of_bounds_crash(int *d_data, int size) {
 
   cudaError_t cuda_error = cudaDeviceSynchronize();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_OUT_OF_BOUNDS"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_OUT_OF_BOUNDS"};
   }
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }
 
 CudaError launch_null_pointer_crash(int *d_data, int size) {
@@ -72,11 +72,11 @@ CudaError launch_null_pointer_crash(int *d_data, int size) {
 
   cudaError_t cuda_error = cudaDeviceSynchronize();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_NULL_POINTER"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_NULL_POINTER"};
   }
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }
 
 CudaError launch_infinite_loop_crash(int *d_data, int size) {
@@ -87,21 +87,21 @@ CudaError launch_infinite_loop_crash(int *d_data, int size) {
 
   cudaError_t cuda_error = cudaDeviceSynchronize();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_INFINITE_LOOP"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_INFINITE_LOOP"};
   }
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }
 
 // NVIDIA Driver crash scenarios - WARNING: These may crash the driver or system
 __global__ void driver_memory_exhaustion_kernel(int *data) {
-  // Attempt to allocate massive amounts of shared memory per block
-  __shared__ int shared_memory[65536]; // Max shared memory per block
+  // Attempt to allocate maximum shared memory per block (12KB = 3072 ints)
+  __shared__ int shared_memory[3072]; // Close to max shared memory per block
   int idx = threadIdx.x;
 
   // Create memory pressure by accessing all shared memory
-  for (int i = 0; i < 65536; i++) {
+  for (int i = 0; i < 3072; i++) {
     shared_memory[i] = idx * i;
   }
 
@@ -109,7 +109,7 @@ __global__ void driver_memory_exhaustion_kernel(int *data) {
   __syncthreads();
 
   // Write back to global memory
-  if (idx < 65536) {
+  if (idx < 3072) {
     data[idx] = shared_memory[idx];
   }
 }
@@ -153,11 +153,11 @@ CudaError launch_driver_memory_exhaustion(int *d_data, int size) {
 
   cudaError_t cuda_error = cudaDeviceSynchronize();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_DRIVER_MEMORY_EXHAUSTION"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_DRIVER_MEMORY_EXHAUSTION"};
   }
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }
 
 CudaError launch_driver_invalid_memory_access(int *d_data, int size) {
@@ -168,11 +168,11 @@ CudaError launch_driver_invalid_memory_access(int *d_data, int size) {
 
   cudaError_t cuda_error = cudaDeviceSynchronize();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_DRIVER_INVALID_MEMORY_ACCESS"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_DRIVER_INVALID_MEMORY_ACCESS"};
   }
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }
 
 CudaError launch_driver_context_corruption(int *d_data, int size) {
@@ -184,9 +184,9 @@ CudaError launch_driver_context_corruption(int *d_data, int size) {
   for (int i = 0; i < 100; i++) {
     cuda_error = cudaStreamCreate(&streams[i]);
     if (cuda_error != cudaSuccess) {
-      return CudaError{.code = static_cast<int>(cuda_error),
-                       .message = cudaGetErrorString(cuda_error),
-                       .type = "CUDA_DRIVER_CONTEXT_CORRUPTION"};
+      return CudaError{static_cast<int>(cuda_error),
+                       cudaGetErrorString(cuda_error),
+                       "CUDA_DRIVER_CONTEXT_CORRUPTION"};
     }
   }
 
@@ -206,11 +206,11 @@ CudaError launch_driver_context_corruption(int *d_data, int size) {
 
   cuda_error = cudaDeviceSynchronize();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_DRIVER_CONTEXT_CORRUPTION"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_DRIVER_CONTEXT_CORRUPTION"};
   }
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }
 
 CudaError launch_driver_excessive_recursion(int *d_data, int size) {
@@ -221,42 +221,48 @@ CudaError launch_driver_excessive_recursion(int *d_data, int size) {
 
   cudaError_t cuda_error = cudaDeviceSynchronize();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_DRIVER_EXCESSIVE_RECURSION"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_DRIVER_EXCESSIVE_RECURSION"};
   }
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }
 
 CudaError launch_driver_concurrent_context_destruction(int *d_data, int size) {
   // This is extremely dangerous - concurrent context operations
   cudaError_t cuda_error;
 
-  // Create a secondary context
-  CUcontext secondary_context;
-  CUresult cu_result = cuCtxCreate(&secondary_context, 0, 0);
-  if (cu_result != CUDA_SUCCESS) {
-    return CudaError{.code = static_cast<int>(cu_result),
-                     .message = "Failed to create secondary context",
-                     .type = "CUDA_DRIVER_CONCURRENT_CONTEXT_DESTRUCTION"};
+  // Create multiple streams to cause context corruption
+  cudaStream_t streams[100];
+  for (int i = 0; i < 100; i++) {
+    cuda_error = cudaStreamCreate(&streams[i]);
+    if (cuda_error != cudaSuccess) {
+      return CudaError{static_cast<int>(cuda_error),
+                       cudaGetErrorString(cuda_error),
+                       "CUDA_DRIVER_CONCURRENT_CONTEXT_DESTRUCTION"};
+    }
   }
 
-  // Launch kernel while manipulating contexts
+  // Launch kernels on multiple streams simultaneously
   dim3 block_size(256);
   dim3 grid_size((size + block_size.x - 1) / block_size.x);
 
-  driver_invalid_memory_access_kernel<<<grid_size, block_size>>>(d_data, size);
+  for (int i = 0; i < 100; i++) {
+    driver_invalid_memory_access_kernel<<<grid_size, block_size, 0, streams[i]>>>(d_data, size);
+  }
 
-  // Immediately destroy secondary context while kernel is running
-  cuCtxDestroy(secondary_context);
+  // Destroy streams while kernels might still be running
+  for (int i = 0; i < 100; i++) {
+    cudaStreamDestroy(streams[i]);
+  }
 
   // Try to reset device while kernel is potentially running
   cuda_error = cudaDeviceReset();
   if (cuda_error != cudaSuccess) {
-    return CudaError{.code = static_cast<int>(cuda_error),
-                     .message = cudaGetErrorString(cuda_error),
-                     .type = "CUDA_DRIVER_CONCURRENT_CONTEXT_DESTRUCTION"};
+    return CudaError{static_cast<int>(cuda_error),
+                     cudaGetErrorString(cuda_error),
+                     "CUDA_DRIVER_CONCURRENT_CONTEXT_DESTRUCTION"};
   }
 
-  return CudaError{.code = 0, .message = "Success", .type = "NONE"};
+  return CudaError{0, "Success", "NONE"};
 }

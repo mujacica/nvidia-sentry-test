@@ -14,6 +14,7 @@ set BUILD_TYPE=%1
 if "%BUILD_TYPE%"=="" set BUILD_TYPE=Debug
 
 if "%BUILD_CUDA%"=="" set BUILD_CUDA=ON
+if "%BUILD_VULKAN%"=="" set BUILD_VULKAN=ON
 if "%BUILD_DIRECTX%"=="" set BUILD_DIRECTX=ON
 if "%BUILD_PYTHON_CUDA%"=="" set BUILD_PYTHON_CUDA=ON
 if "%BUILD_GPU_INFO%"=="" set BUILD_GPU_INFO=ON
@@ -28,16 +29,21 @@ if "%BUILD_CUDA%"=="ON" (
     )
 )
 
-REM Check for DirectX SDK (should be included with Visual Studio)
-if "%BUILD_DIRECTX%"=="ON" (
-    if not exist "%ProgramFiles(x86)%\Windows Kits\10\Include\*\um\d3d11.h" (
-        if not exist "%ProgramFiles%\Windows Kits\10\Include\*\um\d3d11.h" (
-            echo Warning: DirectX SDK not found. Disabling DirectX build.
-            echo Install Windows SDK or Visual Studio with DirectX support.
-            set BUILD_DIRECTX=OFF
+REM Check for Vulkan SDK
+if "%BUILD_VULKAN%"=="ON" (
+    if defined VULKAN_SDK (
+        if not exist "%VULKAN_SDK%\Include\vulkan\vulkan.h" (
+            echo Warning: Vulkan SDK installation appears incomplete. Disabling Vulkan build.
+            echo Please reinstall Vulkan SDK from https://vulkan.lunarg.com/
+            set BUILD_VULKAN=OFF
         )
+    ) else (
+        echo Warning: Vulkan SDK not found. Disabling Vulkan build.
+        echo Install Vulkan SDK from https://vulkan.lunarg.com/ and ensure VULKAN_SDK environment variable is set.
+        set BUILD_VULKAN=OFF
     )
 )
+
 
 REM Check for Python 3
 if "%BUILD_PYTHON_CUDA%"=="ON" (
@@ -58,7 +64,7 @@ cd %BUILD_DIR%
 
 echo Running CMake configuration...
 echo   BUILD_CUDA: %BUILD_CUDA%
-echo   BUILD_VULKAN: OFF (not supported on Windows in this demo)
+echo   BUILD_VULKAN: %BUILD_VULKAN%
 echo   BUILD_DIRECTX: %BUILD_DIRECTX%
 echo   BUILD_PYTHON_CUDA: %BUILD_PYTHON_CUDA%
 echo   BUILD_GPU_INFO: %BUILD_GPU_INFO%
@@ -66,11 +72,11 @@ echo   BUILD_GPU_INFO: %BUILD_GPU_INFO%
 cmake -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
       -DBUILD_TESTING=ON ^
       -DBUILD_CUDA=%BUILD_CUDA% ^
-      -DBUILD_VULKAN=OFF ^
+      -DBUILD_VULKAN=%BUILD_VULKAN% ^
       -DBUILD_DIRECTX=%BUILD_DIRECTX% ^
       -DBUILD_PYTHON_CUDA=%BUILD_PYTHON_CUDA% ^
       -DBUILD_GPU_INFO=%BUILD_GPU_INFO% ^
-      -G "Visual Studio 16 2019" -A x64 ..
+      -G "Visual Studio 17 2022" -A x64 ..
 
 if %ERRORLEVEL% neq 0 (
     echo CMake configuration failed!
@@ -91,72 +97,47 @@ cmake --install . --config %BUILD_TYPE%
 echo.
 echo Build and install completed successfully!
 
-REM Upload debug symbols to Sentry if environment variables are set
-if defined SENTRY_ORG if defined SENTRY_PROJECT if defined SENTRY_AUTH_TOKEN (
+if not "%SENTRY_ORG%"=="" if not "%SENTRY_PROJECT%"=="" if not "%SENTRY_AUTH_TOKEN%"=="" (
     echo.
     echo Uploading debug symbols to Sentry...
     
-    set SENTRY_CLI_PATH=.\sentry-cli.exe
+    set SENTRY_CLI_PATH=%CD%\sentry-cli.exe
     
     REM Download sentry-cli if not present
-    if not exist "%SENTRY_CLI_PATH%" (
+    if not exist "!SENTRY_CLI_PATH!" (
         echo Downloading sentry-cli...
-        
-        REM Detect architecture
-        if "%PROCESSOR_ARCHITECTURE%"=="AMD64" (
-            set ARCH=x86_64
-        ) else if "%PROCESSOR_ARCHITEW6432%"=="AMD64" (
-            set ARCH=x86_64
-        ) else if "%PROCESSOR_ARCHITECTURE%"=="ARM64" (
-            set ARCH=aarch64
-        ) else (
-            echo Unsupported architecture: %PROCESSOR_ARCHITECTURE%
-            goto :eof
-        )
-        
-        set DOWNLOAD_URL=https://github.com/getsentry/sentry-cli/releases/latest/download/sentry-cli-Windows-!ARCH!.exe
+        set DOWNLOAD_URL=https://github.com/getsentry/sentry-cli/releases/latest/download/sentry-cli-Windows-x86_64.exe
         
         REM Try to download using PowerShell
-        powershell -Command "try { Invoke-WebRequest -Uri '!DOWNLOAD_URL!' -OutFile '%SENTRY_CLI_PATH%' -UseBasicParsing } catch { exit 1 }" >nul 2>&1
+        powershell -Command "try { Invoke-WebRequest -Uri '!DOWNLOAD_URL!' -OutFile '!SENTRY_CLI_PATH!' -UseBasicParsing } catch { exit 1 }" >nul 2>&1
         if !ERRORLEVEL! equ 0 (
             echo sentry-cli downloaded successfully
-        ) else (
-            REM Fallback to curl if available
-            where curl >nul 2>&1
-            if !ERRORLEVEL! equ 0 (
-                curl -L "!DOWNLOAD_URL!" -o "%SENTRY_CLI_PATH%" --silent --show-error
-                if !ERRORLEVEL! equ 0 (
-                    echo sentry-cli downloaded successfully
-                ) else (
-                    echo Error: Failed to download sentry-cli
-                    goto :eof
-                )
-            ) else (
-                echo Error: Failed to download sentry-cli. PowerShell and curl not available.
-                echo Please manually download from: https://github.com/getsentry/sentry-cli/releases
-                goto :eof
-            )
         )
     )
     
     REM Upload debug symbols for our demo binaries only (not crashpad_handler)
     set UPLOAD_FILES=
     
-    if "%BUILD_CUDA%"=="ON" if exist "..\install\bin\cuda_crash_demo.exe" (
-        set UPLOAD_FILES=!UPLOAD_FILES! ..\install\bin\cuda_crash_demo.exe
+    if "%BUILD_CUDA%"=="ON" if exist "Debug\cuda_crash_demo.exe" (
+        set UPLOAD_FILES=!UPLOAD_FILES! Debug\cuda_crash_demo.exe Debug\cuda_crash_demo.pdb Debug\cuda_crash_demo.exp Debug\cuda_crash_demo.lib
     )
     
-    if "%BUILD_DIRECTX%"=="ON" if exist "..\install\bin\directx_crash_demo.exe" (
-        set UPLOAD_FILES=!UPLOAD_FILES! ..\install\bin\directx_crash_demo.exe
+    if "%BUILD_VULKAN%"=="ON" if exist "Debug\vulkan_crash_demo.exe" (
+        set UPLOAD_FILES=!UPLOAD_FILES! Debug\vulkan_crash_demo.exe Debug\vulkan_crash_demo.pdb
     )
     
-    if "%BUILD_GPU_INFO%"=="ON" if exist "..\install\bin\gpu_info_demo.exe" (
-        set UPLOAD_FILES=!UPLOAD_FILES! ..\install\bin\gpu_info_demo.exe
+    if "%BUILD_DIRECTX%"=="ON" if exist "Debug\directx_crash_demo.exe" (
+        set UPLOAD_FILES=!UPLOAD_FILES! Debug\directx_crash_demo.exe Debug\directx_crash_demo.pdb
     )
     
+    if "%BUILD_GPU_INFO%"=="ON" if exist "Debug\gpu_info_demo.exe" (
+        set UPLOAD_FILES=!UPLOAD_FILES! Debug\gpu_info_demo.exe Debug\gpu_info_demo.pdb
+    )
+    
+    echo Debug: UPLOAD_FILES=[!UPLOAD_FILES!]
     if defined UPLOAD_FILES (
         REM Upload with proper source mapping and paths
-        "%SENTRY_CLI_PATH%" debug-files upload --include-sources --log-level info  !UPLOAD_FILES!
+        "!SENTRY_CLI_PATH!" debug-files upload --include-sources --log-level info!UPLOAD_FILES!
         if !ERRORLEVEL! equ 0 (
             echo Debug symbols and source files uploaded successfully to Sentry!
         ) else (
@@ -174,6 +155,10 @@ echo Available executables:
 
 if "%BUILD_CUDA%"=="ON" (
     echo   CUDA Demo: install\bin\cuda_crash_demo.exe
+)
+
+if "%BUILD_VULKAN%"=="ON" (
+    echo   Vulkan Demo: install\bin\vulkan_crash_demo.exe
 )
 
 if "%BUILD_DIRECTX%"=="ON" (
@@ -195,14 +180,21 @@ echo   set SENTRY_DSN=your-sentry-dsn-here
 if "%BUILD_CUDA%"=="ON" (
     echo.
     echo CUDA Demo:
-    echo   cd install\bin && .\cuda_crash_demo.exe [test_type]
+    echo   cd install\bin ^&^& .\cuda_crash_demo.exe [test_type]
     echo   Available tests: divide_by_zero, out_of_bounds, null_pointer, infinite_loop
+)
+
+if "%BUILD_VULKAN%"=="ON" (
+    echo.
+    echo Vulkan Demo:
+    echo   cd install\bin ^&^& .\vulkan_crash_demo.exe [test_type]
+    echo   Available tests: invalid_buffer_access, invalid_descriptor_set, device_lost_simulation, invalid_pipeline, out_of_bounds_memory
 )
 
 if "%BUILD_DIRECTX%"=="ON" (
     echo.
     echo DirectX Demo:
-    echo   cd install\bin && .\directx_crash_demo.exe [test_type]
+    echo   cd install\bin ^&^& .\directx_crash_demo.exe [test_type]
     echo   Available tests: invalid_buffer_access, invalid_shader_resource, device_removed_simulation, invalid_render_target, out_of_bounds_vertex_buffer
 )
 
@@ -219,7 +211,7 @@ if "%BUILD_PYTHON_CUDA%"=="ON" (
 if "%BUILD_GPU_INFO%"=="ON" (
     echo.
     echo GPU Info Demo:
-    echo   cd install\bin && .\gpu_info_demo.exe [test_type]
+    echo   cd install\bin ^&^& .\gpu_info_demo.exe [test_type]
     echo   Available tests: basic, warning, error, exception, crash, all
 )
 
