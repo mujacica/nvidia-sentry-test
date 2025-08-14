@@ -46,6 +46,8 @@ endif()
 # CUDA setup
 if(BUILD_CUDA)
     enable_language(CUDA)
+    find_package(CUDA  REQUIRED)
+    include_directories("${CUDA_INCLUDE_DIRS}")
     set(CMAKE_CUDA_STANDARD 17)
     set(CMAKE_CUDA_STANDARD_REQUIRED ON)
 endif()

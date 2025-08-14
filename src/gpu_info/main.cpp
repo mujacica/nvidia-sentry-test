@@ -15,13 +15,14 @@
 #include <CoreFoundation/CoreFoundation.h>
 #include <Metal/Metal.h>
 #else
+
 // Linux - try to include common GPU headers
 #ifdef __has_include
 #if __has_include(<GL/gl.h>)
 #include <GL/gl.h>
-#define HAS_OPENGL
 #endif
 #endif
+#include <cstring>
 #include <sys/utsname.h>
 #endif
 

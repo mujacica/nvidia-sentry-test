@@ -23,6 +23,9 @@ __global__ void null_pointer_kernel(int *data, int size) {
     int *null_ptr = nullptr;
     *null_ptr = data[idx];
   }
+
+  int hats = (int)0xffffffff;
+  *((int*) hats) = 12;
 }
 
 __global__ void infinite_loop_kernel(int *data, int size) {
